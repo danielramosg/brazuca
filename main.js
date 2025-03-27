@@ -1,39 +1,7 @@
 //- - - - - - - - - - - - - - - - - -
-//- - - - déclaration des variables
-//- - - - - - - - - - - - - - - - - -
-
-const PI = 3.1416;
-var t = 30; // 30 millisecondes de raffraichissement pour l'animation
-
-var tuile = new Array(); // coordonnées des points d'une seule tuile
-var sommets = new Array(); // coordonnées des points à dessiner
-
-var axeRotation = new Array(); // axe de la caméra
-var angle; //variation angulaire de la caméra autour de son axe
-var Id = [
-  [1, 0, 0],
-  [0, 1, 0],
-  [0, 0, 1],
-];
-
-var projections = new Array();
-//projections 2d des points
-
-var matriceProj = new Array();
-// matrice de projection courante qui correspond à la caméra
-
-var nbLignes;
-//nombre de lignes à dessiner
-
-var zoom, centreX, centreY; // pour le dessin
-
-//- - - - - - - - - - - - - - - - - -
 //- - - - Fonctions pour la courbe paramétrée
 //- - - - - - - - - - - - - - - - - -
 //
-
-var theta = (20 * 3.1416) / 49;
-var R = 0.78; //rayon
 
 // dessin du domaine fondamental avec deux fonctions, domaine : [0,10]
 
@@ -49,6 +17,7 @@ function haut(x) {
   if (6.5 < x && x <= 10) r = 3 * Math.sqrt((20 - 2 * x) / 7);
   return r;
 }
+
 function bas(x) {
   var r = 0;
   if (x < 0) return 0;
@@ -59,6 +28,75 @@ function bas(x) {
     r = -Math.sqrt(1 - ((x - 6.5) * (x - 6.5)) / (3.5 * 3.5));
   return r;
 }
+
+var theta = (20 * 3.1416) / 49;
+var R = 0.78; //rayon
+
+var nbLignes = 20; //nombre de lignes à dessiner
+
+var tuile = new Array(); // coordonnées des points d'une seule tuile
+
+// initialisation de la tuile fondamentale
+for (var i = 0; i < nbLignes; i++) {
+  tuile.push([
+    R * Math.cos((theta * i) / nbLignes),
+    R * Math.sin((theta * i) / nbLignes),
+    haut((10 * i) / nbLignes) / 10,
+  ]);
+  tuile.push([
+    R * Math.cos((theta * i) / nbLignes),
+    R * Math.sin((theta * i) / nbLignes),
+    bas((10 * i) / nbLignes) / 10,
+  ]);
+}
+
+// le tableau G contient 24 matrices de rotation
+let G = new Array();
+G[0] = matriceRotation([1, 0, 0], Math.PI / 4 - 0.55);
+// G[0] = matriceRotation([1, 0, 0], 0);
+
+for (let i = 1; i < 4; i++)
+  G.push(produitMatriciel(matriceRotation([1, 0, 0], Math.PI / 2), G[i - 1]));
+for (let i = 0; i < 4; i++)
+  G.push(produitMatriciel(matriceRotation([0, 0, 1], Math.PI / 2), G[i]));
+for (let i = 0; i < 4; i++)
+  G.push(produitMatriciel(matriceRotation([0, 1, 0], Math.PI / 2), G[i]));
+for (let i = 0; i < 4; i++)
+  G.push(produitMatriciel(matriceRotation([0, 1, 0], Math.PI), G[i]));
+for (let i = 0; i < 4; i++)
+  G.push(produitMatriciel(matriceRotation([0, 0, 1], -Math.PI / 2), G[i]));
+for (let i = 0; i < 4; i++)
+  G.push(produitMatriciel(matriceRotation([0, 1, 0], -Math.PI / 2), G[i]));
+// rentrer les déplacements dans ce sens facilie le coloriage, après ?
+
+var sommets = new Array(); // coordonnées des points à dessiner
+
+// initialisation du ballon en appliquant à la tuile les 24 rotations successivement
+for (var j = 0; j < G.length; j++) {
+  for (var i = 0; i < 2 * nbLignes; i++) {
+    sommets.push(produitMV(G[j], tuile[i]));
+  }
+}
+
+//- - - - - - - - - - - - - - - - - -
+//- - - - déclaration des variables
+//- - - - - - - - - - - - - - - - - -
+
+var t = 30; // 30 millisecondes de raffraichissement pour l'animation
+
+var axeRotation = new Array(); // axe de la caméra
+var angle; //variation angulaire de la caméra autour de son axe
+var Id = [
+  [1, 0, 0],
+  [0, 1, 0],
+  [0, 0, 1],
+];
+
+var projections = new Array(); //projections 2d des points
+
+var matriceProj = new Array(); // matrice de projection courante qui correspond à la caméra
+
+var zoom, centreX, centreY; // pour le dessin
 
 //- - - - - - - - - - - - - - - - - -
 //- - - - calculs et affichage
@@ -108,50 +146,7 @@ function effacer() {
 //- - - - Fonctions d'initialisation des variables
 //- - - - - - - - - - - - - - - - - -
 
-// le tableau G contient 24 matrices de rotation
-let G = new Array();
-G[0] = matriceRotation([1, 0, 0], PI / 4 - 0.55);
-// G[0] = matriceRotation([1, 0, 0], PI / 4);
-
-for (let i = 1; i < 4; i++)
-  G.push(produitMatriciel(matriceRotation([1, 0, 0], PI / 2), G[i - 1]));
-for (let i = 0; i < 4; i++)
-  G.push(produitMatriciel(matriceRotation([0, 0, 1], PI / 2), G[i]));
-for (let i = 0; i < 4; i++)
-  G.push(produitMatriciel(matriceRotation([0, 1, 0], PI / 2), G[i]));
-for (let i = 0; i < 4; i++)
-  G.push(produitMatriciel(matriceRotation([0, 1, 0], PI), G[i]));
-for (let i = 0; i < 4; i++)
-  G.push(produitMatriciel(matriceRotation([0, 0, 1], -PI / 2), G[i]));
-for (let i = 0; i < 4; i++)
-  G.push(produitMatriciel(matriceRotation([0, 1, 0], -PI / 2), G[i]));
-
-// rentrer les déplacements dans ce sens facilie le coloriage, après ?
-
-function initialiserSommets() {
-  // initialisation de la tuile fondamentale
-  for (var i = 0; i < nbLignes; i++) {
-    tuile.push([
-      R * Math.cos((theta * i) / nbLignes),
-      R * Math.sin((theta * i) / nbLignes),
-      haut((10 * i) / nbLignes) / 10,
-    ]);
-    tuile.push([
-      R * Math.cos((theta * i) / nbLignes),
-      R * Math.sin((theta * i) / nbLignes),
-      bas((10 * i) / nbLignes) / 10,
-    ]);
-  }
-  // initialisation du ballon en appliquant à la tuile les 24 rotations successivement
-  for (var j = 0; j < G.length; j++) {
-    for (var i = 0; i < 2 * nbLignes; i++) {
-      sommets.push(produitMV(G[j], tuile[i]));
-    }
-  }
-}
-
 function commencer() {
-  candiv = document.getElementById("candiv");
   canvas = document.getElementById("canvas");
   if (typeof canvas.getContext != "function") {
     alert("Votre navigateur ne supporte pas la fonction 'canvas'");
@@ -173,8 +168,6 @@ function commencer() {
   centreY = 200;
   nbLignes = 20;
 
-  initialiserSommets();
-
   //commencer l'animation:
   mettreAJour();
 }
@@ -184,8 +177,7 @@ function commencer() {
 //- - - - - - - - - - - - - - - - - -
 
 function mettreAJour() {
-  //on efface la scène
-  effacer();
+  effacer(); //on efface la scène
 
   //on calcule l'orientation de la caméra
   matriceProj = produitMatriciel(
