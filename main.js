@@ -29,9 +29,8 @@ function bas(x) {
   return r;
 }
 
-var theta = (20 * 3.1416) / 49;
-var R = 0.78; //rayon
-
+var theta = 75 * (Math.PI / 180); // (arc) length of the tile
+var R = 1; //rayon
 var nbLignes = 20; //nombre de lignes à dessiner
 
 var tuile = new Array(); // coordonnées des points d'une seule tuile
@@ -39,14 +38,14 @@ var tuile = new Array(); // coordonnées des points d'une seule tuile
 // initialisation de la tuile fondamentale
 for (var i = 0; i < nbLignes; i++) {
   tuile.push([
-    R * Math.cos((theta * i) / nbLignes),
-    R * Math.sin((theta * i) / nbLignes),
-    haut((10 * i) / nbLignes) / 10,
+    R * Math.cos(theta * (i / nbLignes)),
+    R * Math.sin(theta * (i / nbLignes)),
+    haut(10 * (i / nbLignes)) * ((R * theta) / 10),
   ]);
   tuile.push([
-    R * Math.cos((theta * i) / nbLignes),
-    R * Math.sin((theta * i) / nbLignes),
-    bas((10 * i) / nbLignes) / 10,
+    R * Math.cos(theta * (i / nbLignes)),
+    R * Math.sin(theta * (i / nbLignes)),
+    bas(10 * (i / nbLignes)) * ((R * theta) / 10),
   ]);
 }
 
