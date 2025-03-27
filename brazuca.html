@@ -1,0 +1,438 @@
+<!-- https://dmegy.perso.math.cnrs.fr/illus/brazuca.html -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Brazuca</title>
+<!-- <link href="../css/bootstrap5.min.css" rel="stylesheet"> -->
+<style>
+	body{
+		padding:0;
+		margin:0;
+		width:100%;
+		min-height: 100vh;
+		background-color:#444444;
+	}
+	.container{
+		/* width : min(95vw,500px); */
+
+		min-height: 100vh;
+		border:0 1px black solid;
+		background-color: white;
+		box-shadow: 0 0 15px black;
+		padding : 1em;
+	}
+</style>
+<script type="text/javascript">
+
+
+
+//- - - - - - - - - - - - - - - - - - 
+//- - - - déclaration des variables
+//- - - - - - - - - - - - - - - - - -
+
+const PI=3.1416;
+var t=30; // 30 millisecondes de raffraichissement pour l'animation
+
+var tuile = new Array(); // coordonnées des points d'une seule tuile
+var sommets = new Array(); // coordonnées des points à dessiner
+
+var axeRotation = new Array(); // axe de la caméra
+var angle; //variation angulaire de la caméra autour de son axe
+var Id=[[1,0,0],[0,1,0],[0,0,1]];
+
+
+var projections = new Array();
+//projections 2d des points
+
+var matriceProj = new Array();
+// matrice de projection courante qui correspond à la caméra
+
+var nbLignes;
+//nombre de lignes à dessiner
+
+
+var zoom, centreX, centreY; // pour le dessin
+
+//- - - - - - - - - - - - - - - - - - 
+//- - - - Fonctions pour la courbe paramétrée
+//- - - - - - - - - - - - - - - - - -
+//
+
+var theta=20*3.1416/49;
+var R=0.78;//rayon
+
+// dessin du domaine fondamental avec deux fonctions, domaine : [0,10]
+
+function haut(x){
+	var r=0;
+	if(0<=x && x<= 1.5) r=x;
+	if(1.5<x && x<=2.5) r=1+0.5*(x-2.5)*(x-2.5);
+	if(2.5<x && x<=6.5) r=1+0.23*(x-2.5)*(x-2.5)-0.025*(x-2.5)*(x-2.5)*(x-2.5);//
+	if(6.5<x && x<=10) r=3*Math.sqrt((20-2*x)/7);
+	return r;
+}
+function bas(x){
+	var r=0;
+	if(x<0) return 0;
+	if(0<= x && x<= 1.5) r=-x;
+	if(1.5< x && x<=2.5) r=-1-0.5*(x-2.5)*(x-2.5);
+	if(2.5<x && x<=6.5) r=-1;
+	if(6.5<x && x<=10) r=-Math.sqrt(1-((x-6.5)*(x-6.5))/(3.5*3.5));
+	return r;
+}
+
+
+
+
+//- - - - - - - - - - - - - - - - - - 
+//- - - - Algèbre  euclidienne de base
+//- - - - - - - - - - - - - - - - - -
+
+
+function produitScalaire(a,b){
+	var p=0;
+	for(var i=0;i<3;i++){p=p+a[i]*b[i];}
+	return(p);
+}
+
+
+//function produitVectoriel(a,b){
+//	return([a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]]);
+//}
+
+function norme(v){
+	return(Math.sqrt(produitScalaire(v,v)));
+}
+
+function distance(a,b){
+	var v=[0,0,0];
+	for(var i=0;i<3;i++){v[i]=b[i]-a[i];}
+	return(norme(v));
+}
+
+
+
+function matriceRotation(v,t){
+	var M=new Array();
+	var x=v[0]/norme(v);
+	var y=v[1]/norme(v);
+	var z=v[2]/norme(v);
+	var c = Math.cos(t);
+	var s = Math.sin(t);
+	M=[	[c+x*x*(1-c),x*y*(1-c)-z*s, x*z*(1-c)+y*s],
+		[y*x*(1-c)+z*s,c+y*y*(1-c),y*z*(1-c)-x*s],
+		[z*x*(1-c)-y*s,z*y*(1-c)+x*s,c+z*z*(1-c)]];
+	return(M);
+}
+
+function produitMatriciel(A, B) {
+    var rows = A.length;  var mid = B.length;  var cols = B[0].length;
+    var C = new Array(rows);
+    for ( var i=0 ; i<rows ; i++ ) {
+        var vec = new Array(cols);
+        for ( var j=0 ; j<cols ; j++ ) {
+            vec[j] = 0;
+            for ( var k=0 ; k<mid ; k++ )
+                vec[j] += A[i][k]*B[k][j];
+        }
+        C[i] = vec;
+    }
+    return C;
+}
+
+function produitMV(A, V) {// matrice par vecteur
+    var rows = A.length; 
+    var C = new Array(rows);
+    for ( var i=0 ; i<rows ; i++ ) {
+        C[i] = produitScalaire(A[i],V);
+    }
+    return C;
+}
+
+
+
+
+//- - - - - - - - - - - - - - - - - -
+//- - - - calculs et affichage
+//- - - - - - - - - - - - - - - - - -
+
+function calculerProjections() {
+    for ( var i=0 ; i<sommets.length ; i++ ) {
+        projections[i] = [produitScalaire(matriceProj[0],sommets[i])*zoom,
+			produitScalaire(matriceProj[1],sommets[i])*zoom+centreX,
+                       produitScalaire(matriceProj[2],sommets[i])*zoom+centreY];
+    }
+}
+
+
+// dessine une arete entre le sommet p et le sommet q dans une certaine couleur
+// p et q sont des indices du tableau "sommets"
+
+function dessinerAreteEntre(p,q, couleur){
+    var z;
+    ctx.strokeStyle = couleur;
+    z=(projections[p][0]+projections[q][0])/2;
+    ctx.lineWidth = 0.007*(z+100);
+    // opacité en fonction de la profondeur pour mieux voir
+    ctx.beginPath();
+    ctx.moveTo(projections[p][1], projections[p][2]);
+    ctx.lineTo(projections[q][1], projections[q][2]);
+    ctx.stroke();
+}
+
+function dessinerAretes() {
+	var couleur;
+    for ( var n=0 ; n<sommets.length ; n=n+2 ) {
+		if(Math.floor(n/(8*nbLignes))%3==0) couleur="rgb(0,50,200)";
+		else if(Math.floor(n/(8*nbLignes))%3==1) couleur="rgb(50,150,0)";
+		else if(Math.floor(n/(8*nbLignes))%3==2) couleur="rgb(200,0,50)";
+		else couleur="rgb(0,0,0)";
+    	dessinerAreteEntre(n,n+1,couleur);
+    }
+}
+
+function effacer() {
+    ctx.clearRect(0,0,400,400);
+}
+
+
+
+
+//- - - - - - - - - - - - - - - - - - 
+//- - - - Fonctions d'initialisation des variables
+//- - - - - - - - - - - - - - - - - -
+
+
+// le tableau G contient 24 matrices de rotation
+let G=new Array();
+G[0]=matriceRotation([1,0,0],PI/4-0.55);
+for(let i=1;i<4;i++)
+	G.push(produitMatriciel(matriceRotation([1,0,0],PI/2),G[i-1]));
+for(let i=0;i<4;i++)
+	G.push(produitMatriciel(matriceRotation([0,0,1],PI/2),G[i]));
+for(let i=0;i<4;i++)
+	G.push(produitMatriciel(matriceRotation([0,1,0],PI/2),G[i]));
+for(let i=0;i<4;i++)
+	G.push(produitMatriciel(matriceRotation([0,1,0],PI),G[i]));
+for(let i=0;i<4;i++)
+	G.push(produitMatriciel(matriceRotation([0,0,1],-PI/2),G[i]));
+for(let i=0;i<4;i++)
+	G.push(produitMatriciel(matriceRotation([0,1,0],-PI/2),G[i]));
+	
+// rentrer les déplacements dans ce sens facilie le coloriage, après ?
+
+
+function initialiserSommets(){
+	// initialisation de la tuile fondamentale
+    for(var i=0 ; i<nbLignes ; i++){
+    	tuile.push([R*Math.cos(theta*i/nbLignes),R*Math.sin(theta*i/nbLignes),haut(10*i/nbLignes)/10]);
+		tuile.push([R*Math.cos(theta*i/nbLignes),R*Math.sin(theta*i/nbLignes),bas(10*i/nbLignes)/10]);
+    }
+	// initialisation du ballon en appliquant à la tuile les 24 rotations successivement
+    for(var j=0 ; j<G.length ; j++){
+ 	    for(var i=0 ; i<2*nbLignes ; i++){
+			sommets.push(produitMV(G[j],tuile[i]));
+		}
+    }
+}
+
+
+
+
+
+
+function commencer() {
+    candiv = document.getElementById("candiv");
+    canvas = document.getElementById("canvas");
+    if ( typeof(canvas.getContext) != "function" ) {
+        alert("Votre navigateur ne supporte pas la fonction 'canvas'");
+    }
+    ctx = canvas.getContext("2d");
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+	// initialisation des valeurs numériques:
+    axeRotation = [1.5,0.1,1];
+    matriceProj=[[1,0,0],[0,1,0],[0,0,1]];
+    angle=0.01;
+    zoom=100;
+    centreX=200;
+    centreY=200;
+    nbLignes=20;
+    
+    
+    initialiserSommets();
+    
+    //commencer l'animation:
+    mettreAJour();
+}
+
+
+
+//- - - - - - - - - - - - - - - - - - 
+//- - - - controle de l'animation  
+//- - - - - - - - - - - - - - - - - -
+
+function mettreAJour() {
+		//on efface la scène
+		effacer();
+		
+		//on calcule l'orientation de la caméra
+		matriceProj = produitMatriciel(matriceProj,matriceRotation(axeRotation,angle));
+		
+		//on calcule les coordonnées des points dans le repère de la caméra
+		calculerProjections();
+		
+		//on dessine les droites
+		dessinerAretes();
+		
+		//on recommence dans t millisecondes
+		window.setTimeout(mettreAJour, t);
+}
+
+
+
+
+
+
+
+
+
+//- - - - - - - - - - - - - - - - - - 
+//- - - - fin du javascript - - - - -
+//- - - - - - - - - - - - - - - - - -
+</script>
+</head>
+<body onload="commencer()">
+	<div class="container">
+	<center>Le Brazuca, le ballon de la coupe du monde 2014, n'est pas un <a href="http://fr.wikipedia.org/wiki/Icosa%C3%A8dre_tronqu%C3%A9">icosaèdre tronqué</a>, c'est un recollement de surfaces réglées.<br/>
+<div id="candiv" style="width: 400px; height: 400px;">
+<canvas id="canvas" width="400" height="400">
+</canvas>
+</div>
+</center>
+
+
+<p>
+La source est un <a href="https://images.math.cnrs.fr/Le-Brazuca-le-ballon-cubique-de-la-Coupe-du-monde" target="_blank">billet d'Etienne Ghys sur le site image des maths</a>.
+</p>
+
+<h2>Making-of</h2>
+<h4>Contexte</h4>
+<p>
+	Cette animation a été codée juste après avoir lu l'article, il y a bien longtemps. Comme il s'agissait de surfaces réglées recollées entre elles, la tentation était forte de coder quelque chose dans le genre des <a href="./index.html" target="_blank">autres animations de surfaces réglées</a>. Une surface réglée est une surface qui est entièrement recouverte par une famille de droites. Comme dessiner des droites en javascript est facile, on peut relativement facilement dessiner de telles surfaces avec un code très simple, n'utilisant que les "canvas" en html5 et en dessinant des segments.
+	<center>
+		<img src="conoidePlucker3.png">
+	</center>
+</p>
+<h4>Construction des «faces»</h4>
+D'après l'article d'Étienne Ghys, le ballon est obtenu en recollant six «faces», comme un cube. La différence est que ces faces ne sont pas de carrés, mais des formes un peu plus complexes. Les six faces sont toutes identiques, les voici (illustration tirée de l'article) :
+<center>
+	<img src="brazuca_patron.jpg" style="width:100%">
+</center>
+<p>Il fallait donc trouver une façon de dessiner ces formes avec javascript. 
+<h4>Première utilisation des symétries</h4>
+Noter que les faces ont une symétrie de rotation d'ordre quatre : il n'est donc nécessaire que de savoir dessiner une «ailette», (dans la suite, on eappellera ça une «tuile», et de dessiner les trois autres en appliquant des rotations successives d'un quart de tour.</p>
+<h4>Fonctions pour la forme des tuiles</h4>
+<p>Comme l'objectif était d'avoir un code qui permette d'augmenter facilement le nombre de traits (ou de le réduire, si on observe un ralentissement trop grand), le choix a été fait d'interpoler la forme du bord de la tuile avec des fonctions, c'était l'idée la plus simple. Après capture d'écran, zoom, et quelques tatonnements sur les coordonnées des points et des vecteurs, on obtient deux fonctions (définies par morceaux sur le segment [0,10] dans notre exemple), qui représentent le «haut» de la tuile, et le «bas» de la tuile :
+<pre><code>
+function haut(x){
+	var r=0;
+	if(0&lt;=x &amp;&amp; x&lt;= 1.5) r=x;
+	if(1.5&lt;x &amp;&amp; x&lt;=2.5) r=1+0.5*(x-2.5)*(x-2.5);
+	if(2.5&lt;x &amp;&amp; x&lt;=6.5) r=1+0.23*(x-2.5)*(x-2.5)-0.025*(x-2.5)*(x-2.5)*(x-2.5);//
+	if(6.5&lt;x &amp;&amp; x&lt;=10) r=3*Math.sqrt((20-2*x)/7);
+	return r;
+}
+function bas(x){
+	var r=0;
+	if(0&lt;= x &amp;&amp; x&lt;= 1.5) r=-x;
+	if(1.5&lt; x &amp;&amp; x&lt;=2.5) r=-1-0.5*(x-2.5)*(x-2.5);
+	if(2.5&lt;x &amp;&amp; x&lt;=6.5) r=-1;
+	if(6.5&lt;x &amp;&amp; x&lt;=10) r=-Math.sqrt(1-((x-6.5)*(x-6.5))/(3.5*3.5));
+	return r;
+}
+</code></pre>
+C'est très moche, oui, mais c'était la première idée qui est venue et elle permet d'augmenter le nombre de traits à volonté. Illustration avec 20, 40 puis 60 traits:
+<canvas id="canvas2" width="380" height="100" style="border:1px black solid;display:block;margin:1em auto">
+</canvas>
+<script>
+	let canvas2 = document.getElementById("canvas2");
+    ctx2 = canvas2.getContext("2d");
+    function dessinerTuile(n,x,y,contexte){
+    	for (let i=0;i<n;i++){
+			contexte.beginPath();
+			contexte.moveTo(x+10*i*10/n,y+10*bas(i*10/n));
+			contexte.lineTo(x+10*i*10/n,y+10*haut(i*10/n));
+			contexte.stroke();
+		}
+    }
+    dessinerTuile(20,20,50,ctx2);
+    dessinerTuile(40,140,50,ctx2);
+    dessinerTuile(60,260,50,ctx2);
+
+    
+</script>
+Pour dessiner une face, il suffit de dessiner quatre tuiles en les faisant tourner d'un quart de tour à chaque fois, ce qui donne:
+<canvas id="canvas3" width="240" height="240" style="border:1px black solid;display:block;margin:1em auto">
+</canvas>
+<script>
+
+	let canvas3 = document.getElementById("canvas3");
+    ctx3 = canvas3.getContext("2d");
+    let N=40,x0=120,y0=120;
+	for (let i=0;i<N;i++){
+		ctx3.beginPath();
+		ctx3.moveTo(x0+10*i*10/N,y0+10*bas(i*10/N));
+		ctx3.lineTo(x0+10*i*10/N,y0+10*haut(i*10/N));
+
+		ctx3.moveTo(y0-10*bas(i*10/N),x0+10*i*10/N);
+		ctx3.lineTo(y0-10*haut(i*10/N),x0+10*i*10/N);
+
+		ctx3.moveTo(x0-10*i*10/N,y0-10*bas(i*10/N));
+		ctx3.lineTo(x0-10*i*10/N,y0-10*haut(i*10/N));
+
+		ctx3.moveTo(y0+10*bas(i*10/N),x0-10*i*10/N);
+		ctx3.lineTo(y0+10*haut(i*10/N),x0-10*i*10/N);
+
+		ctx3.stroke();
+	}
+</script>
+Toujours à comparer avec 
+<center>
+	<img src="brazuca_patron.jpg" style="width:100%">
+</center>
+(Les plus attentifs auront remarqué qu'il y a une différence,  et que donc la face n'est pas exactement la même que le modèle original : c'est son symétrique. Ceci est dû au fait que les canvas html ont un système de coordonnées où les y vont «vers le bas»...)
+</p>
+<h4>Placement de toutes les tuiles/faces</h4>
+Il suffit maintenant de savoir dessiner une tuile en trois dimensions, en la "pliant", puis de dessiner les 24 tuiles nécessaires, en prenant la première tuile et en appliquant chacune des 24 matrices de rotation suivantes:
+<pre><code>
+// le tableau G contient 24 matrices de rotation
+let G=new Array();
+G[0]=matriceRotation([1,0,0],PI/4-0.55);
+for(let i=1;i&lt;4;i++)
+	G.push(produitMatriciel(matriceRotation([1,0,0],PI/2),G[i-1]));
+for(let i=0;i&lt;4;i++)
+	G.push(produitMatriciel(matriceRotation([0,0,1],PI/2),G[i]));
+for(let i=0;i&lt;4;i++)
+	G.push(produitMatriciel(matriceRotation([0,1,0],PI/2),G[i]));
+for(let i=0;i&lt;4;i++)
+	G.push(produitMatriciel(matriceRotation([0,1,0],PI),G[i]));
+for(let i=0;i&lt;4;i++)
+	G.push(produitMatriciel(matriceRotation([0,0,1],-PI/2),G[i]));
+for(let i=0;i&lt;4;i++)
+	G.push(produitMatriciel(matriceRotation([0,1,0],-PI/2),G[i]));
+	</code></pre>
+
+<p>(Explication : on commence par les quatre rotations d'une face, puis on rajoute les rotations correspondant aux 5 autres faces, en prenant les quatres rotations de la première face et en les multipliant par des rotations d'un quart de tour, ou, pour la face opposée, par une rotation d'un demi-tour. Chacune des six boucles for correspond aux rotations d'une des six faces.)</p>
+
+<p>Ce code utilise une fonction de multiplication de matrices, et une fonction <code>matriceRotation(vecteur,angle)</code> qui retourne une matrice orthogonale de rotation, dont le code est standard (voir cours de L2 sur les espaces euclidiens). On obtient les 24 matrices de rotations qui sont celles qu el'on doit appliquer à une tuile pour obtenir les 24 autres dans l'espace, de sorte qu'elles forent bien un "cube". Si la première tuile est convenablement courbée dans l'espace, on obtient quelque chose qui ressemble à une sphère, plutôt qu'à un cube.</p>
+<h4>Animation</h4>
+Le ballon est animé en tournant sur lui-même. À chaque nouvelle image, on applique à tous les points une rotation d'un centième de radian par rapport à un certain axe (ici <code>[1.5,0.1,1]</code>), et on redessine tous les traits.
+<h4>Conclusion</h4>
+<p>Il manque plein de détails mais ces courtes explications devraient rendre la lecture du code assez facile, ou en tout cas faisable. </p>
+<p>Le code n'est ni très beau ni très optimisé, et je ne connaissais pas <code>requestAnimationFrame</code> à l'époque, par exemple, donc tout est fait avec un <code>setTimeout</code> toutes les 40ms, ce qui est une mauvaise pratique...Il y a plein d'autres défauts (syntaxe javascript pre-ES6 en général) mais il y a peu de chances que tout ceci soit mis à jour.</p>
+</div>
+</body>
+</html>
