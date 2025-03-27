@@ -29,8 +29,10 @@ function bas(x) {
   return r;
 }
 
-var theta = 75 * (Math.PI / 180); // (arc) length of the tile
-var R = 1; //rayon
+// var theta = 75 * (Math.PI / 180); // (arc) length of the tile
+var theta = (50.5 * (Math.PI / 180) * 10) / 6.5;
+
+var R = 1.6; //rayon
 var nbLignes = 20; //nombre de lignes à dessiner
 
 var tuile = new Array(); // coordonnées des points d'une seule tuile
@@ -138,7 +140,7 @@ function dessinerAretes() {
 }
 
 function effacer() {
-  ctx.clearRect(0, 0, 400, 400);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 //- - - - - - - - - - - - - - - - - -
@@ -162,9 +164,9 @@ function commencer() {
     [0, 0, 1],
   ];
   angle = 0.01;
-  zoom = 100;
-  centreX = 200;
-  centreY = 200;
+  zoom = 160;
+  centreX = canvas.width / 2;
+  centreY = canvas.height / 2;
   nbLignes = 20;
 
   //commencer l'animation:
@@ -177,19 +179,8 @@ function commencer() {
 
 function mettreAJour() {
   effacer(); //on efface la scène
-
-  //on calcule l'orientation de la caméra
-  matriceProj = produitMatriciel(
-    matriceProj,
-    matriceRotation(axeRotation, angle)
-  );
-
-  //on calcule les coordonnées des points dans le repère de la caméra
-  calculerProjections();
-
-  //on dessine les droites
-  dessinerAretes();
-
-  //on recommence dans t millisecondes
-  window.setTimeout(mettreAJour, t);
+  matriceProj = matriceRotation(axeRotation, (angle * performance.now()) / t); //on calcule l'orientation de la caméra
+  calculerProjections(); //on calcule les coordonnées des points dans le repère de la caméra
+  dessinerAretes(); //on dessine les droites
+  requestAnimationFrame(mettreAJour);
 }
