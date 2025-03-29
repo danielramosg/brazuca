@@ -1,0 +1,15 @@
+#canvas2,
+#canvas3 {
+  border: 1px black solid;
+  display: inline-block;
+  margin: 1em auto;
+  width: 400px;
+}
+
+#mainViz {
+  text-align: center;
+}
+#tileDetails {
+  display: flex;
+  align-items: center;
+}

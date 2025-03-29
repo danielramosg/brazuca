@@ -15,7 +15,7 @@ function haut(x) {
       0.23 * (x - 2.5) * (x - 2.5) -
       0.025 * (x - 2.5) * (x - 2.5) * (x - 2.5); //
   if (6.5 < x && x <= 10) r = 3 * Math.sqrt((20 - 2 * x) / 7);
-  return r;
+  return -r;
 }
 
 function bas(x) {
@@ -26,14 +26,35 @@ function bas(x) {
   if (2.5 < x && x <= 6.5) r = -1;
   if (6.5 < x && x <= 10)
     r = -Math.sqrt(1 - ((x - 6.5) * (x - 6.5)) / (3.5 * 3.5));
-  return r;
+  return -r;
 }
+var h = 3.3;
+
+// function haut(x) {
+//   var r = 0;
+//   if (x < 0) return 0;
+//   if (x < 1.5) return x;
+//   if (x < 4.5) return 1.5;
+//   if (x < 6.5) return (x - 6.5) / Math.sqrt(3) + h + Math.sin((x - 6.5) / 3);
+//   if (x < 10)
+//     return -(x - 6.5) / Math.sqrt(3) + h + 0.25 * Math.sin((x - 6.5) / 3);
+//   return 0;
+// }
+
+// function bas(x) {
+//   var r = 0;
+//   if (x < 0) return 0;
+//   if (x < 1.5) return -x;
+//   if (x < 10) return -(h / 3 + 0.25 * Math.sin((x - 1.5) / 3));
+//   //   if (x < 10) return -(x - 6.5) / Math.sqrt(3) + h;
+//   return 0;
+// }
 
 // var theta = 75 * (Math.PI / 180); // (arc) length of the tile
 var theta = (50.5 * (Math.PI / 180) * 10) / 6.5;
 
 var R = 1.6; //rayon
-var nbLignes = 20; //nombre de lignes à dessiner
+var nbLignes = 80; //nombre de lignes à dessiner
 
 var tuile = new Array(); // coordonnées des points d'une seule tuile
 
@@ -53,7 +74,7 @@ for (var i = 0; i < nbLignes; i++) {
 
 // le tableau G contient 24 matrices de rotation
 let G = new Array();
-G[0] = matriceRotation([1, 0, 0], Math.PI / 4 - 0.55);
+G[0] = matriceRotation([1, 0, 0], -(Math.PI / 4) + 0.55);
 // G[0] = matriceRotation([1, 0, 0], 0);
 
 for (let i = 1; i < 4; i++)
@@ -120,12 +141,14 @@ function dessinerAreteEntre(p, q, couleur) {
   var z;
   ctx.strokeStyle = couleur;
   z = (projections[p][0] + projections[q][0]) / 2;
-  ctx.lineWidth = 0.007 * (z + 100);
-  // opacité en fonction de la profondeur pour mieux voir
-  ctx.beginPath();
-  ctx.moveTo(projections[p][1], projections[p][2]);
-  ctx.lineTo(projections[q][1], projections[q][2]);
-  ctx.stroke();
+  if (z > 0) {
+    ctx.lineWidth = 0.007 * (z + 100);
+    // opacité en fonction de la profondeur pour mieux voir
+    ctx.beginPath();
+    ctx.moveTo(projections[p][1], projections[p][2]);
+    ctx.lineTo(projections[q][1], projections[q][2]);
+    ctx.stroke();
+  }
 }
 
 function dessinerAretes() {
@@ -167,7 +190,6 @@ function commencer() {
   zoom = 160;
   centreX = canvas.width / 2;
   centreY = canvas.height / 2;
-  nbLignes = 20;
 
   //commencer l'animation:
   mettreAJour();
@@ -183,4 +205,44 @@ function mettreAJour() {
   calculerProjections(); //on calcule les coordonnées des points dans le repère de la caméra
   dessinerAretes(); //on dessine les droites
   requestAnimationFrame(mettreAJour);
+}
+
+commencer();
+
+/** CANVAS 2 */
+let canvas2 = document.getElementById("canvas2");
+ctx2 = canvas2.getContext("2d");
+function dessinerTuile(n, x, y, contexte) {
+  for (let i = 0; i < n; i++) {
+    contexte.beginPath();
+    contexte.moveTo(x + (10 * i * 10) / n, y + 10 * bas((i * 10) / n));
+    contexte.lineTo(x + (10 * i * 10) / n, y + 10 * haut((i * 10) / n));
+    contexte.stroke();
+  }
+}
+dessinerTuile(20, 20, 50, ctx2);
+dessinerTuile(40, 140, 50, ctx2);
+dessinerTuile(60, 260, 50, ctx2);
+
+/** CANVAS 3 */
+let canvas3 = document.getElementById("canvas3");
+ctx3 = canvas3.getContext("2d");
+let N = 40,
+  x0 = 120,
+  y0 = 120;
+for (let i = 0; i < N; i++) {
+  ctx3.beginPath();
+  ctx3.moveTo(x0 + (10 * i * 10) / N, y0 + 10 * bas((i * 10) / N));
+  ctx3.lineTo(x0 + (10 * i * 10) / N, y0 + 10 * haut((i * 10) / N));
+
+  ctx3.moveTo(y0 - 10 * bas((i * 10) / N), x0 + (10 * i * 10) / N);
+  ctx3.lineTo(y0 - 10 * haut((i * 10) / N), x0 + (10 * i * 10) / N);
+
+  ctx3.moveTo(x0 - (10 * i * 10) / N, y0 - 10 * bas((i * 10) / N));
+  ctx3.lineTo(x0 - (10 * i * 10) / N, y0 - 10 * haut((i * 10) / N));
+
+  ctx3.moveTo(y0 + 10 * bas((i * 10) / N), x0 - (10 * i * 10) / N);
+  ctx3.lineTo(y0 + 10 * haut((i * 10) / N), x0 - (10 * i * 10) / N);
+
+  ctx3.stroke();
 }
