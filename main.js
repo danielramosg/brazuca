@@ -97,7 +97,7 @@ for (let i = 0; i < 4; i++)
   G.push(produitMatriciel(matriceRotation([0, 1, 0], -Math.PI / 2), G[i]));
 // rentrer les déplacements dans ce sens facilie le coloriage, après ?
 
-var sommets = new Array(); // coordonnées des points à dessiner
+const sommets = new Array(); // coordonnées des points à dessiner
 
 // initialisation du ballon en appliquant à la tuile les 24 rotations successivement
 for (var j = 0; j < G.length; j++) {
@@ -107,30 +107,10 @@ for (var j = 0; j < G.length; j++) {
 }
 
 //- - - - - - - - - - - - - - - - - -
-//- - - - déclaration des variables
-//- - - - - - - - - - - - - - - - - -
-
-var t = 30; // 30 millisecondes de raffraichissement pour l'animation
-
-var axeRotation = new Array(); // axe de la caméra
-var angle; //variation angulaire de la caméra autour de son axe
-var Id = [
-  [1, 0, 0],
-  [0, 1, 0],
-  [0, 0, 1],
-];
-
-var projections = new Array(); //projections 2d des points
-
-var matriceProj = new Array(); // matrice de projection courante qui correspond à la caméra
-
-var zoom, centreX, centreY; // pour le dessin
-
-let canvas, ctx, ctx2, ctx3;
-
-//- - - - - - - - - - - - - - - - - -
 //- - - - calculs et affichage
 //- - - - - - - - - - - - - - - - - -
+
+var projections = new Array(); //projections 2d des points
 
 function calculerProjections() {
   for (var i = 0; i < sommets.length; i++) {
@@ -175,37 +155,26 @@ function effacer() {
 }
 
 //- - - - - - - - - - - - - - - - - -
-//- - - - Fonctions d'initialisation des variables
+//- - - - Initialisation des variables
 //- - - - - - - - - - - - - - - - - -
 
-function commencer() {
-  canvas = document.getElementById("canvas");
-  if (typeof canvas.getContext != "function") {
-    alert("Votre navigateur ne supporte pas la fonction 'canvas'");
-  }
-  ctx = canvas.getContext("2d");
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+ctx.lineCap = "round";
+ctx.lineJoin = "round";
 
-  // initialisation des valeurs numériques:
-  axeRotation = [1.5, 0.1, 1];
-  matriceProj = [
-    [1, 0, 0],
-    [0, 1, 0],
-    [0, 0, 1],
-  ];
-  angle = 0.01;
-  zoom = 160;
-  centreX = canvas.width / 2;
-  centreY = canvas.height / 2;
-
-  //commencer l'animation:
-  mettreAJour();
-}
+const centreX = canvas.width / 2;
+const centreY = canvas.height / 2;
+const zoom = 160;
 
 //- - - - - - - - - - - - - - - - - -
 //- - - - controle de l'animation
 //- - - - - - - - - - - - - - - - - -
+
+const axeRotation = [1.5, 0.1, 1]; // axe de la caméra
+const angle = 0.01; //variation angulaire de la caméra autour de son axe
+let matriceProj = new Array(); // matrice de projection courante qui correspond à la caméra
+const t = 30; // 30 millisecondes de raffraichissement pour l'animation
 
 function mettreAJour() {
   effacer(); //on efface la scène
@@ -215,11 +184,12 @@ function mettreAJour() {
   requestAnimationFrame(mettreAJour);
 }
 
-commencer();
+mettreAJour();
 
 /** CANVAS 2 */
-let canvas2 = document.getElementById("canvas2");
-ctx2 = canvas2.getContext("2d");
+const canvas2 = document.getElementById("canvas2");
+const ctx2 = canvas2.getContext("2d");
+
 function dessinerTuile(n, x, y, contexte) {
   for (let i = 0; i < n; i++) {
     contexte.beginPath();
@@ -228,16 +198,19 @@ function dessinerTuile(n, x, y, contexte) {
     contexte.stroke();
   }
 }
+
 dessinerTuile(20, 20, 50, ctx2);
 dessinerTuile(40, 140, 50, ctx2);
 dessinerTuile(60, 260, 50, ctx2);
 
 /** CANVAS 3 */
-let canvas3 = document.getElementById("canvas3");
-ctx3 = canvas3.getContext("2d");
+const canvas3 = document.getElementById("canvas3");
+const ctx3 = canvas3.getContext("2d");
+
 let N = 40,
   x0 = 120,
   y0 = 120;
+
 for (let i = 0; i < N; i++) {
   ctx3.beginPath();
   ctx3.moveTo(x0 + (10 * i * 10) / N, y0 + 10 * bas((i * 10) / N));
