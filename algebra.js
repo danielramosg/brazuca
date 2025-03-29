@@ -66,3 +66,12 @@ function produitMV(A, V) {
   }
   return C;
 }
+
+export {
+  produitScalaire,
+  produitMatriciel,
+  produitMV,
+  matriceRotation,
+  norme,
+  distance,
+};

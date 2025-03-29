@@ -1,3 +1,9 @@
+import {
+  matriceRotation,
+  produitMatriciel,
+  produitMV,
+  produitScalaire,
+} from "./algebra.js";
 //- - - - - - - - - - - - - - - - - -
 //- - - - Fonctions pour la courbe paramétrée
 //- - - - - - - - - - - - - - - - - -
@@ -119,6 +125,8 @@ var projections = new Array(); //projections 2d des points
 var matriceProj = new Array(); // matrice de projection courante qui correspond à la caméra
 
 var zoom, centreX, centreY; // pour le dessin
+
+let canvas, ctx, ctx2, ctx3;
 
 //- - - - - - - - - - - - - - - - - -
 //- - - - calculs et affichage
