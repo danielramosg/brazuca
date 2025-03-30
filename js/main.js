@@ -15,18 +15,22 @@ var nbLignes = 80; //nombre de lignes à dessiner
 var tuile = new Array(); // coordonnées des points d'une seule tuile
 
 // initialisation de la tuile fondamentale
-for (var i = 0; i < nbLignes; i++) {
-  tuile.push([
-    R * Math.cos(theta * (i / nbLignes)),
-    R * Math.sin(theta * (i / nbLignes)),
-    haut(10 * (i / nbLignes)) * ((R * theta) / 10),
-  ]);
-  tuile.push([
-    R * Math.cos(theta * (i / nbLignes)),
-    R * Math.sin(theta * (i / nbLignes)),
-    bas(10 * (i / nbLignes)) * ((R * theta) / 10),
-  ]);
+function createTuile() {
+  for (var i = 0; i < nbLignes; i++) {
+    tuile.push([
+      R * Math.cos(theta * (i / nbLignes)),
+      R * Math.sin(theta * (i / nbLignes)),
+      haut(10 * (i / nbLignes)) * ((R * theta) / 10),
+    ]);
+    tuile.push([
+      R * Math.cos(theta * (i / nbLignes)),
+      R * Math.sin(theta * (i / nbLignes)),
+      bas(10 * (i / nbLignes)) * ((R * theta) / 10),
+    ]);
+  }
 }
+
+createTuile();
 
 // le tableau G contient 24 matrices de rotation
 let G = new Array();

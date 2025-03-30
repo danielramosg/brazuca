@@ -9,30 +9,30 @@ import { drawCurve, drawSkeleton, drag } from "./bezier-helpers.js";
 
 // dessin du domaine fondamental avec deux fonctions, domaine : [0,10]
 
-function haut(x) {
-  var r = 0;
-  if (0 <= x && x <= 1.5) r = x;
-  if (1.5 < x && x <= 2.5) r = 1 + 0.5 * (x - 2.5) * (x - 2.5);
-  if (2.5 < x && x <= 6.5)
-    r =
-      1 +
-      0.23 * (x - 2.5) * (x - 2.5) -
-      0.025 * (x - 2.5) * (x - 2.5) * (x - 2.5); //
-  if (6.5 < x && x <= 10) r = 3 * Math.sqrt((20 - 2 * x) / 7);
-  return -r;
-}
+// function haut(x) {
+//   var r = 0;
+//   if (0 <= x && x <= 1.5) r = x;
+//   if (1.5 < x && x <= 2.5) r = 1 + 0.5 * (x - 2.5) * (x - 2.5);
+//   if (2.5 < x && x <= 6.5)
+//     r =
+//       1 +
+//       0.23 * (x - 2.5) * (x - 2.5) -
+//       0.025 * (x - 2.5) * (x - 2.5) * (x - 2.5); //
+//   if (6.5 < x && x <= 10) r = 3 * Math.sqrt((20 - 2 * x) / 7);
+//   return -r;
+// }
 
-function bas(x) {
-  var r = 0;
-  if (x < 0) return 0;
-  if (0 <= x && x <= 1.5) r = -x;
-  if (1.5 < x && x <= 2.5) r = -1 - 0.5 * (x - 2.5) * (x - 2.5);
-  if (2.5 < x && x <= 6.5) r = -1;
-  if (6.5 < x && x <= 10)
-    r = -Math.sqrt(1 - ((x - 6.5) * (x - 6.5)) / (3.5 * 3.5));
-  return -r;
-}
-var h = 3.3;
+// function bas(x) {
+//   var r = 0;
+//   if (x < 0) return 0;
+//   if (0 <= x && x <= 1.5) r = -x;
+//   if (1.5 < x && x <= 2.5) r = -1 - 0.5 * (x - 2.5) * (x - 2.5);
+//   if (2.5 < x && x <= 6.5) r = -1;
+//   if (6.5 < x && x <= 10)
+//     r = -Math.sqrt(1 - ((x - 6.5) * (x - 6.5)) / (3.5 * 3.5));
+//   return -r;
+// }
+// var h = 3.3;
 
 // function haut(x) {
 //   var r = 0;
@@ -92,9 +92,11 @@ const polyBezier = (pts) => [
   new Bezier(pts.slice(12, 16).flat()),
 ];
 
+let curves = polyBezier(points);
+
 function update() {
   tilectx.clearRect(0, 0, width, height);
-  const curves = polyBezier(points);
+  curves = polyBezier(points);
   for (let i = 0; i < curves.length; i += 1) {
     drawSkeleton(tilectx, curves[i]);
     drawCurve(tilectx, curves[i]);
@@ -109,4 +111,29 @@ d3.select("#canvasMaker")
   .call(update)
   .node();
 
+const haut = (X) => {
+  //   console.log(X);
+  const x = 40 * X;
+  const intersections = [];
+
+  curves.forEach((curve, i) => {
+    const ys = curve
+      .intersects({
+        p1: { x: x, y: 0 },
+        p2: { x: x, y: height },
+      })
+      .map((t) => curve.get(t).y - 200);
+
+    if (ys.length) {
+      intersections.push(...ys);
+    }
+    // console.log(X, intersections);
+  });
+  if (intersections.length > 0) {
+    const m = Math.min(...intersections);
+    return m / 30;
+  }
+  return 0;
+};
+const bas = (x) => 1;
 export { haut, bas };
