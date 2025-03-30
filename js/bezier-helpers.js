@@ -5,6 +5,7 @@ const clamp = (x, min, max) => Math.min(Math.max(x, min), max);
 
 function drag(selection, { points, radius, update }) {
   function dragsubject(event) {
+    console.log([event.x, event.y]);
     let S = null;
     let R = radius;
     for (const p of points) {

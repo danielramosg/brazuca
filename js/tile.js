@@ -59,27 +59,49 @@ const tilectx = tilecnv.getContext("2d");
 
 const width = tilecnv.width;
 const height = tilecnv.height;
+// tilectx.transform(1, 0, 0, -1, 0, height / 2);
 
 const points = [
-  [0.75 * Math.min(640, width), 80],
-  [0.4 * Math.min(640, width), 20],
-  [0.15 * Math.min(640, width), 150],
+  [0, 0],
+  [50, 50],
+  [0, 0],
+  [50, 50],
+  [100, 0],
+  [300 - 100 * Math.sqrt(3), 0],
+  [300, 100],
+  [300 + 50 * Math.sqrt(3), 50],
+  [475, -50],
+  [300, -50],
+  [125, -50],
+  [100, 0],
+  [50, -50],
+  [0, 0],
+  [50, -50],
+  [0, 0],
+].map((p) => [p[0], -p[1] + 200]);
+
+// const b = new Bezier(points.flat());
+// drawCurve(tilectx, b);
+// drawSkeleton(tilectx, b);
+
+const polyBezier = (pts) => [
+  new Bezier(pts.slice(0, 4).flat()),
+  new Bezier(pts.slice(3, 7).flat()),
+  new Bezier(pts.slice(6, 10).flat()),
+  new Bezier(pts.slice(9, 13).flat()),
+  new Bezier(pts.slice(12, 16).flat()),
 ];
 
-const b = new Bezier(points.flat());
-
-drawCurve(tilectx, b);
-drawSkeleton(tilectx, b);
-
 function update() {
-  const context = tilectx;
-  const curve = new Bezier(points.flat());
-  // const outline = curve.outline(offset1, offset1, offset2, offset2);
-  context.clearRect(0, 0, width, height);
-  drawSkeleton(context, curve);
-  drawCurve(context, curve);
-  // context.strokeStyle = "red";
-  // outline.curves.forEach(c => drawCurve(context, c));
+  tilectx.clearRect(0, 0, width, height);
+  const curves = polyBezier(points);
+  for (let i = 0; i < curves.length; i += 1) {
+    drawSkeleton(tilectx, curves[i]);
+    drawCurve(tilectx, curves[i]);
+  }
+  //   const curve = new Bezier(points.flat());
+  //   drawSkeleton(tilectx, curve);
+  //   drawCurve(tilectx, curve);
 }
 
 d3.select("#canvasMaker")
