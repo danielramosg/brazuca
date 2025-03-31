@@ -61,28 +61,50 @@ const width = tilecnv.width;
 const height = tilecnv.height;
 // tilectx.transform(1, 0, 0, -1, 0, height / 2);
 
-const points = [
+// window.points = [
+//   [0, 0],
+//   [50, 50],
+//   [0, 0],
+//   [50, 50],
+//   [90, 10],
+//   [300 - 100 * Math.sqrt(3), 0],
+//   [300, 100],
+//   [300 + 50 * Math.sqrt(3), 50],
+//   [475, -50],
+//   [300, -50],
+//   [125, -50],
+//   [90, -10],
+//   [50, -50],
+//   [0, 0],
+//   [50, -50],
+//   [0, 0],
+// ].map((p) => [p[0], -p[1] + 200]);
+
+window.points = [
   [0, 0],
-  [50, 50],
+  [45, 25],
   [0, 0],
-  [50, 50],
-  [90, 10],
-  [300 - 100 * Math.sqrt(3), 0],
-  [300, 100],
-  [300 + 50 * Math.sqrt(3), 50],
-  [475, -50],
-  [300, -50],
-  [125, -50],
-  [90, -10],
-  [50, -50],
+  [90, 50],
+  [150, 50],
+  [192.79491924311228, 78],
+  [260, 136],
+  [449.60254037844385, 40],
+  [476, -65],
+  [261, -60],
+  [125, -64],
+  [50, -30],
+  [50, -90],
   [0, 0],
-  [50, -50],
+  [25, -45],
   [0, 0],
 ].map((p) => [p[0], -p[1] + 200]);
-
 // const b = new Bezier(points.flat());
 // drawCurve(tilectx, b);
 // drawSkeleton(tilectx, b);
+
+window.exportPoints = () => {
+  console.log(window.points.map((p) => [p[0], -p[1] + 200]));
+};
 
 const polyBezier = (pts) => [
   new Bezier(pts.slice(0, 4).flat()),
@@ -96,8 +118,18 @@ let curves = polyBezier(points);
 
 window.updateTileShape = () => {};
 
+const im = document.createElement("img");
+im.width = 400;
+im.height = 400;
+im.src = "../img/brazuca_patron.png";
+// document.body.appendChild(im);
+// console.log(im);
+
 function update() {
   tilectx.clearRect(0, 0, width, height);
+  const k = 830;
+  tilectx.drawImage(im, -k / 2, height / 2 - k / 2, k, k);
+
   curves = polyBezier(points);
   for (let i = 0; i < curves.length; i += 1) {
     drawSkeleton(tilectx, curves[i]);
@@ -109,10 +141,11 @@ function update() {
   window.updateTileShape();
 }
 
-d3.select("#canvasMaker")
-  .call(drag, { radius: 20, points: points, update })
-  .call(update)
-  .node();
+window.onload = () => update();
+
+d3.select("#canvasMaker").call(drag, { radius: 20, points: points, update });
+//   .call(update)
+//   .node();
 
 const tileSegment = (X) => {
   //   console.log(X);
