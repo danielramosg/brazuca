@@ -3,53 +3,20 @@ import {
   produitMatriciel,
   produitMV,
   produitScalaire,
+  cubeGroup,
 } from "./algebra.js";
-import { haut, bas } from "./tile.js";
+import { createBentTile, draw4FoldFlatTile, drawFlatTile } from "./tile.js";
 
-// var theta = 75 * (Math.PI / 180); // (arc) length of the tile
-var theta = (50.5 * (Math.PI / 180) * 10) / 6.5;
+// symmetries, starting with an initial rotation
+const G = cubeGroup.map((g) =>
+  produitMatriciel(g, matriceRotation([1, 0, 0], -(Math.PI / 4) + 0.55))
+);
 
 var R = 1.6; //rayon
 var nbLignes = 80; //nombre de lignes à dessiner
 
-var tuile = new Array(); // coordonnées des points d'une seule tuile
-
 // initialisation de la tuile fondamentale
-function createTuile() {
-  for (var i = 0; i < nbLignes; i++) {
-    tuile.push([
-      R * Math.cos(theta * (i / nbLignes)),
-      R * Math.sin(theta * (i / nbLignes)),
-      haut(10 * (i / nbLignes)) * ((R * theta) / 10),
-    ]);
-    tuile.push([
-      R * Math.cos(theta * (i / nbLignes)),
-      R * Math.sin(theta * (i / nbLignes)),
-      bas(10 * (i / nbLignes)) * ((R * theta) / 10),
-    ]);
-  }
-}
-
-createTuile();
-
-// le tableau G contient 24 matrices de rotation
-let G = new Array();
-G[0] = matriceRotation([1, 0, 0], -(Math.PI / 4) + 0.55);
-// G[0] = matriceRotation([1, 0, 0], 0);
-
-for (let i = 1; i < 4; i++)
-  G.push(produitMatriciel(matriceRotation([1, 0, 0], Math.PI / 2), G[i - 1]));
-for (let i = 0; i < 4; i++)
-  G.push(produitMatriciel(matriceRotation([0, 0, 1], Math.PI / 2), G[i]));
-for (let i = 0; i < 4; i++)
-  G.push(produitMatriciel(matriceRotation([0, 1, 0], Math.PI / 2), G[i]));
-for (let i = 0; i < 4; i++)
-  G.push(produitMatriciel(matriceRotation([0, 1, 0], Math.PI), G[i]));
-for (let i = 0; i < 4; i++)
-  G.push(produitMatriciel(matriceRotation([0, 0, 1], -Math.PI / 2), G[i]));
-for (let i = 0; i < 4; i++)
-  G.push(produitMatriciel(matriceRotation([0, 1, 0], -Math.PI / 2), G[i]));
-// rentrer les déplacements dans ce sens facilie le coloriage, après ?
+const tuile = createBentTile(R, nbLignes);
 
 const sommets = new Array(); // coordonnées des points à dessiner
 
@@ -144,40 +111,12 @@ mettreAJour();
 const canvas2 = document.getElementById("canvas2");
 const ctx2 = canvas2.getContext("2d");
 
-function dessinerTuile(n, x, y, contexte) {
-  for (let i = 0; i < n; i++) {
-    contexte.beginPath();
-    contexte.moveTo(x + (10 * i * 10) / n, y + 10 * bas((i * 10) / n));
-    contexte.lineTo(x + (10 * i * 10) / n, y + 10 * haut((i * 10) / n));
-    contexte.stroke();
-  }
-}
-
-dessinerTuile(20, 20, 50, ctx2);
-dessinerTuile(40, 140, 50, ctx2);
-dessinerTuile(60, 260, 50, ctx2);
+drawFlatTile(ctx2, 20, 20, 50);
+drawFlatTile(ctx2, 40, 140, 50);
+drawFlatTile(ctx2, 60, 260, 50);
 
 /** CANVAS 3 */
 const canvas3 = document.getElementById("canvas3");
 const ctx3 = canvas3.getContext("2d");
 
-let N = 40,
-  x0 = 120,
-  y0 = 120;
-
-for (let i = 0; i < N; i++) {
-  ctx3.beginPath();
-  ctx3.moveTo(x0 + (10 * i * 10) / N, y0 + 10 * bas((i * 10) / N));
-  ctx3.lineTo(x0 + (10 * i * 10) / N, y0 + 10 * haut((i * 10) / N));
-
-  ctx3.moveTo(y0 - 10 * bas((i * 10) / N), x0 + (10 * i * 10) / N);
-  ctx3.lineTo(y0 - 10 * haut((i * 10) / N), x0 + (10 * i * 10) / N);
-
-  ctx3.moveTo(x0 - (10 * i * 10) / N, y0 - 10 * bas((i * 10) / N));
-  ctx3.lineTo(x0 - (10 * i * 10) / N, y0 - 10 * haut((i * 10) / N));
-
-  ctx3.moveTo(y0 + 10 * bas((i * 10) / N), x0 - (10 * i * 10) / N);
-  ctx3.lineTo(y0 + 10 * haut((i * 10) / N), x0 - (10 * i * 10) / N);
-
-  ctx3.stroke();
-}
+draw4FoldFlatTile(ctx3, 40, 120, 120);

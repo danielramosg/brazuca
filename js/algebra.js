@@ -67,6 +67,25 @@ function produitMV(A, V) {
   return C;
 }
 
+// le tableau G contient 24 matrices de rotation
+let G = new Array();
+G[0] = matriceRotation([1, 0, 0], 0);
+for (let i = 1; i < 4; i++)
+  G.push(produitMatriciel(matriceRotation([1, 0, 0], Math.PI / 2), G[i - 1]));
+for (let i = 0; i < 4; i++)
+  G.push(produitMatriciel(matriceRotation([0, 0, 1], Math.PI / 2), G[i]));
+for (let i = 0; i < 4; i++)
+  G.push(produitMatriciel(matriceRotation([0, 1, 0], Math.PI / 2), G[i]));
+for (let i = 0; i < 4; i++)
+  G.push(produitMatriciel(matriceRotation([0, 1, 0], Math.PI), G[i]));
+for (let i = 0; i < 4; i++)
+  G.push(produitMatriciel(matriceRotation([0, 0, 1], -Math.PI / 2), G[i]));
+for (let i = 0; i < 4; i++)
+  G.push(produitMatriciel(matriceRotation([0, 1, 0], -Math.PI / 2), G[i]));
+// rentrer les déplacements dans ce sens facilie le coloriage, après ?
+
+const cubeGroup = G;
+
 export {
   produitScalaire,
   produitMatriciel,
@@ -74,4 +93,5 @@ export {
   matriceRotation,
   norme,
   distance,
+  cubeGroup,
 };

@@ -66,14 +66,14 @@ const points = [
   [50, 50],
   [0, 0],
   [50, 50],
-  [100, 0],
+  [90, 10],
   [300 - 100 * Math.sqrt(3), 0],
   [300, 100],
   [300 + 50 * Math.sqrt(3), 50],
   [475, -50],
   [300, -50],
   [125, -50],
-  [100, 0],
+  [90, -10],
   [50, -50],
   [0, 0],
   [50, -50],
@@ -111,7 +111,7 @@ d3.select("#canvasMaker")
   .call(update)
   .node();
 
-const haut = (X) => {
+const tileSegment = (X) => {
   //   console.log(X);
   const x = 40 * X;
   const intersections = [];
@@ -131,9 +131,64 @@ const haut = (X) => {
   });
   if (intersections.length > 0) {
     const m = Math.min(...intersections);
-    return m / 30;
+    const M = Math.max(...intersections);
+    return [m / 40, M / 40];
   }
-  return 0;
+  return [0, 0];
 };
-const bas = (x) => 1;
-export { haut, bas };
+
+const createBentTile = (R, nbLignes) => {
+  // var theta = 75 * (Math.PI / 180); // (arc) length of the tile
+  var theta = (50.5 * (Math.PI / 180) * 10) / 6.5;
+  var tuile = new Array(); // coordonnées des points d'une seule tuile
+
+  for (var i = 0; i < nbLignes; i++) {
+    const segment = tileSegment(10 * (i / nbLignes)); // [haut, bas] = [min, max]
+
+    tuile.push([
+      R * Math.cos(theta * (i / nbLignes)),
+      R * Math.sin(theta * (i / nbLignes)),
+      segment[0] * ((R * theta) / 10),
+    ]);
+    tuile.push([
+      R * Math.cos(theta * (i / nbLignes)),
+      R * Math.sin(theta * (i / nbLignes)),
+      segment[1] * ((R * theta) / 10),
+    ]);
+  }
+  return tuile;
+};
+
+const drawFlatTile = (ctx, N, ox, oy) => {
+  for (let i = 0; i < N; i++) {
+    const segment = tileSegment(i * (10 / N));
+
+    ctx.beginPath();
+    ctx.moveTo(ox + (10 * i * 10) / N, oy + 10 * segment[1]);
+    ctx.lineTo(ox + (10 * i * 10) / N, oy + 10 * segment[0]);
+    ctx.stroke();
+  }
+};
+
+const draw4FoldFlatTile = (ctx, N, ox, oy) => {
+  for (let i = 0; i < N; i++) {
+    const segment = tileSegment(i * (10 / N));
+
+    ctx.beginPath();
+    ctx.moveTo(ox + (10 * i * 10) / N, oy + 10 * segment[1]);
+    ctx.lineTo(ox + (10 * i * 10) / N, oy + 10 * segment[0]);
+
+    ctx.moveTo(oy - 10 * segment[1], ox + (10 * i * 10) / N);
+    ctx.lineTo(oy - 10 * segment[0], ox + (10 * i * 10) / N);
+
+    ctx.moveTo(ox - (10 * i * 10) / N, oy - 10 * segment[1]);
+    ctx.lineTo(ox - (10 * i * 10) / N, oy - 10 * segment[0]);
+
+    ctx.moveTo(oy + 10 * segment[1], ox - (10 * i * 10) / N);
+    ctx.lineTo(oy + 10 * segment[0], ox - (10 * i * 10) / N);
+
+    ctx.stroke();
+  }
+};
+
+export { createBentTile, drawFlatTile, draw4FoldFlatTile };
