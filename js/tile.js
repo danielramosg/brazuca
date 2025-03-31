@@ -94,6 +94,8 @@ const polyBezier = (pts) => [
 
 let curves = polyBezier(points);
 
+window.updateTileShape = () => {};
+
 function update() {
   tilectx.clearRect(0, 0, width, height);
   curves = polyBezier(points);
@@ -104,6 +106,7 @@ function update() {
   //   const curve = new Bezier(points.flat());
   //   drawSkeleton(tilectx, curve);
   //   drawCurve(tilectx, curve);
+  window.updateTileShape();
 }
 
 d3.select("#canvasMaker")
@@ -160,6 +163,7 @@ const createBentTile = (R, nbLignes) => {
 };
 
 const drawFlatTile = (ctx, N, ox, oy) => {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   for (let i = 0; i < N; i++) {
     const segment = tileSegment(i * (10 / N));
 
@@ -171,6 +175,8 @@ const drawFlatTile = (ctx, N, ox, oy) => {
 };
 
 const draw4FoldFlatTile = (ctx, N, ox, oy) => {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
   for (let i = 0; i < N; i++) {
     const segment = tileSegment(i * (10 / N));
 

@@ -3,15 +3,18 @@
   border: 1px black solid;
   display: inline-block;
   margin: 1em auto;
-  width: 400px;
+  width: 100%;
 }
 
 #mainViz {
   text-align: center;
+  display: inline-block;
 }
 #tileDetails {
-  display: flex;
+  position: absolute;
+  display: inline-flex;
   align-items: center;
+  flex-direction: column;
 }
 
 #profileMaker {

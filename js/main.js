@@ -7,6 +7,13 @@ import {
 } from "./algebra.js";
 import { createBentTile, draw4FoldFlatTile, drawFlatTile } from "./tile.js";
 
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const canvas2 = document.getElementById("canvas2");
+const ctx2 = canvas2.getContext("2d");
+const canvas3 = document.getElementById("canvas3");
+const ctx3 = canvas3.getContext("2d");
+
 // symmetries, starting with an initial rotation
 const G = cubeGroup.map((g) =>
   produitMatriciel(g, matriceRotation([1, 0, 0], -(Math.PI / 4) + 0.55))
@@ -15,17 +22,29 @@ const G = cubeGroup.map((g) =>
 var R = 1.6; //rayon
 var nbLignes = 80; //nombre de lignes à dessiner
 
-// initialisation de la tuile fondamentale
-const tuile = createBentTile(R, nbLignes);
-
-const sommets = new Array(); // coordonnées des points à dessiner
+let tuile, sommets;
 
 // initialisation du ballon en appliquant à la tuile les 24 rotations successivement
-for (var j = 0; j < G.length; j++) {
-  for (var i = 0; i < 2 * nbLignes; i++) {
-    sommets.push(produitMV(G[j], tuile[i]));
+const createVertices = () => {
+  const vertices = new Array();
+  for (var j = 0; j < G.length; j++) {
+    for (var i = 0; i < 2 * nbLignes; i++) {
+      vertices.push(produitMV(G[j], tuile[i]));
+    }
   }
-}
+  return vertices;
+};
+
+const updateTileShape = () => {
+  tuile = createBentTile(R, nbLignes); // initialisation de la tuile fondamentale
+  sommets = createVertices(); // coordonnées des points à dessiner
+
+  drawFlatTile(ctx2, 60, 20, 50);
+  draw4FoldFlatTile(ctx3, 40, 120, 120);
+};
+
+updateTileShape();
+window.updateTileShape = updateTileShape;
 
 //- - - - - - - - - - - - - - - - - -
 //- - - - calculs et affichage
@@ -79,8 +98,6 @@ function effacer() {
 //- - - - Initialisation des variables
 //- - - - - - - - - - - - - - - - - -
 
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
 ctx.lineCap = "round";
 ctx.lineJoin = "round";
 
@@ -106,17 +123,3 @@ function mettreAJour() {
 }
 
 mettreAJour();
-
-/** CANVAS 2 */
-const canvas2 = document.getElementById("canvas2");
-const ctx2 = canvas2.getContext("2d");
-
-drawFlatTile(ctx2, 20, 20, 50);
-drawFlatTile(ctx2, 40, 140, 50);
-drawFlatTile(ctx2, 60, 260, 50);
-
-/** CANVAS 3 */
-const canvas3 = document.getElementById("canvas3");
-const ctx3 = canvas3.getContext("2d");
-
-draw4FoldFlatTile(ctx3, 40, 120, 120);
