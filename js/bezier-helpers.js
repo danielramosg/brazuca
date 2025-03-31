@@ -3,7 +3,7 @@ import "./vendor/d3-bundle.js"; // https://stackoverflow.com/questions/62805412/
 
 const clamp = (x, min, max) => Math.min(Math.max(x, min), max);
 
-function drag(selection, { points, radius, update }) {
+const drag = (selection, { points, radius, update }) => {
   function dragsubject(event) {
     console.log([event.x, event.y]);
     let S = null;
@@ -32,7 +32,7 @@ function drag(selection, { points, radius, update }) {
       .on("drag", dragged)
       .on("start.update drag.update end.update", update)
   );
-}
+};
 
 function drawLine(ctx, p1, p2, offset) {
   offset = offset || { x: 0, y: 0 };
