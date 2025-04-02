@@ -2,6 +2,9 @@ import { Bezier } from "./vendor/bezier-js/src/bezier.js";
 import { drawCurve, drawSkeleton, drag } from "./bezier-helpers.js";
 
 class BezierEditor {
+  width = 900;
+  height = 600;
+
   points = [
     [0, 0],
     [38, 30],
@@ -9,17 +12,17 @@ class BezierEditor {
     [72, 56],
     [124, 31],
     [192.79491924311228, 78],
-    [261, 139],
-    [396.60254037844385, 78],
-    [492, -78],
-    [231, -49],
-    [129, -42],
+    [341, 178],
+    [598, 8],
+    [565, -72],
+    [385, -63],
+    [138, -62],
     [78, -39],
     [54, -71],
     [0, 0],
     [30, -39],
     [0, 0],
-  ].map((p) => [p[0], -p[1] + 200]);
+  ].map((p) => [p[0], -p[1] + this.height / 2]);
 
   polyBezier(pts) {
     return [
@@ -33,10 +36,28 @@ class BezierEditor {
 
   update() {
     this.ctx.clearRect(0, 0, this.width, this.height);
-    const k = 830;
+    const k = 1090;
     this.ctx.filter = "opacity(30%)";
     this.ctx.drawImage(this.bgImage, -k / 2, this.height / 2 - k / 2, k, k);
     this.ctx.filter = "none";
+
+    this.ctx.beginPath();
+    this.ctx.moveTo(0, this.height / 2);
+    this.ctx.lineTo(((Math.PI / 2) * 1) / this.scale, this.height / 2);
+    this.ctx.stroke();
+    this.ctx.beginPath();
+    this.ctx.moveTo(((Math.PI / 2) * 1) / this.scale, this.height / 2 - 5);
+    this.ctx.lineTo(((Math.PI / 2) * 1) / this.scale, this.height / 2 + 5);
+    this.ctx.stroke();
+
+    this.ctx.font = "30px serif";
+    this.ctx.textAlign = "center";
+    this.ctx.textBaseline = "top";
+    this.ctx.fillText(
+      "R𝜋/2",
+      ((Math.PI / 2) * 1) / this.scale,
+      this.height / 2 + 5
+    );
 
     this.curves = this.polyBezier(this.points);
 
@@ -49,19 +70,21 @@ class BezierEditor {
   }
 
   constructor(cnv) {
-    this.width = cnv.width;
-    this.height = cnv.height;
+    cnv.width = this.width;
+    cnv.height = this.height;
+    this.scale = (Math.PI * 3) / 4 / this.width; // the width of the diagram corresponds to pi/2 radians.
+
     this.ctx = cnv.getContext("2d");
 
     this.curves = this.polyBezier(this.points);
 
     window.exportPoints = () => {
-      console.log(this.points.map((p) => [p[0], -p[1] + 200]));
+      console.log(this.points.map((p) => [p[0], -p[1] + this.height / 2]));
     };
 
     this.bgImage = document.createElement("img");
-    this.bgImage.width = 400;
-    this.bgImage.height = 400;
+    this.bgImage.width = cnv.height;
+    this.bgImage.height = cnv.height;
     this.bgImage.src = "../img/brazuca_patron.png";
     document.body.appendChild(this.bgImage);
 
@@ -74,9 +97,12 @@ class BezierEditor {
     });
   }
 
+  /** A vertical segment of the tile.
+   * Domain of the function: pi/2
+   */
   segment(X) {
-    //   console.log(X);
-    const x = 40 * X;
+    // X in radians
+    const x = X / this.scale; // x in pixels
     const intersections = [];
 
     this.curves.forEach((curve, i) => {
@@ -85,7 +111,7 @@ class BezierEditor {
           p1: { x: x, y: 0 },
           p2: { x: x, y: this.height },
         })
-        .map((t) => curve.get(t).y - 200);
+        .map((t) => curve.get(t).y - this.height / 2);
 
       if (ys.length) {
         intersections.push(...ys);
@@ -95,7 +121,8 @@ class BezierEditor {
     if (intersections.length > 0) {
       const m = Math.min(...intersections);
       const M = Math.max(...intersections);
-      return [m / 40, M / 40];
+
+      return [m, M].map((x) => x * this.scale);
     }
     return null;
   }
