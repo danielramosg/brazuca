@@ -69,7 +69,7 @@ function produitMV(A, V) {
 
 // le tableau G contient 24 matrices de rotation
 let G = new Array();
-G[0] = matriceRotation([1, 0, 0], 0);
+G[0] = matriceRotation([1, 0, 0], 0); // identity matrix
 for (let i = 1; i < 4; i++)
   G.push(produitMatriciel(matriceRotation([1, 0, 0], Math.PI / 2), G[i - 1]));
 for (let i = 0; i < 4; i++)

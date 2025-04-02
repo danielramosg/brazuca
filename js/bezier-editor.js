@@ -4,20 +4,20 @@ import { drawCurve, drawSkeleton, drag } from "./bezier-helpers.js";
 class BezierEditor {
   points = [
     [0, 0],
-    [45, 25],
+    [38, 30],
     [0, 0],
-    [90, 50],
-    [150, 50],
+    [72, 56],
+    [124, 31],
     [192.79491924311228, 78],
-    [260, 136],
-    [449.60254037844385, 40],
-    [476, -65],
-    [261, -60],
-    [125, -64],
-    [50, -30],
-    [50, -90],
+    [261, 139],
+    [396.60254037844385, 78],
+    [492, -78],
+    [231, -49],
+    [129, -42],
+    [78, -39],
+    [54, -71],
     [0, 0],
-    [25, -45],
+    [30, -39],
     [0, 0],
   ].map((p) => [p[0], -p[1] + 200]);
 
@@ -34,7 +34,9 @@ class BezierEditor {
   update() {
     this.ctx.clearRect(0, 0, this.width, this.height);
     const k = 830;
+    this.ctx.filter = "opacity(30%)";
     this.ctx.drawImage(this.bgImage, -k / 2, this.height / 2 - k / 2, k, k);
+    this.ctx.filter = "none";
 
     this.curves = this.polyBezier(this.points);
 
@@ -95,7 +97,7 @@ class BezierEditor {
       const M = Math.max(...intersections);
       return [m / 40, M / 40];
     }
-    return [0, 0];
+    return null;
   }
 }
 

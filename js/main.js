@@ -22,22 +22,33 @@ const G = cubeGroup.map((g) =>
 var R = 1.6; //rayon
 var nbLignes = 80; //nombre de lignes à dessiner
 
-let tuile, sommets;
-
+let tuile, sommets, couleurs;
 // initialisation du ballon en appliquant à la tuile les 24 rotations successivement
-const createVertices = () => {
-  const vertices = new Array();
+const createVertices = (G, tuile) => {
+  const vertices = [];
+  const colors = [];
   for (var j = 0; j < G.length; j++) {
-    for (var i = 0; i < 2 * nbLignes; i++) {
-      vertices.push(produitMV(G[j], tuile[i]));
+    let color;
+    if (Math.floor(j / 4) % 3 === 0) color = "rgb(0,50,200)";
+    else if (Math.floor(j / 4) % 3 === 1) color = "rgb(50,150,0)";
+    else if (Math.floor(j / 4) % 3 === 2) color = "rgb(200,0,50)";
+
+    for (var i = 0; i < tuile.length; i++) {
+      vertices.push(produitMV(G[j], tuile[i][0]));
+      vertices.push(produitMV(G[j], tuile[i][1]));
+      colors.push(color);
+      colors.push(color);
     }
   }
-  return vertices;
+
+  return { vertices, colors };
 };
 
 const updateTileShape = () => {
   tuile = createBentTile(R, nbLignes); // initialisation de la tuile fondamentale
-  sommets = createVertices(); // coordonnées des points à dessiner
+  const v = createVertices(G, tuile); // coordonnées des points à dessiner
+  sommets = v.vertices;
+  couleurs = v.colors;
 
   drawFlatTile(ctx2, 60, 20, 50);
   draw4FoldFlatTile(ctx3, 40, 120, 120);
@@ -82,11 +93,12 @@ function dessinerAreteEntre(p, q, couleur) {
 function dessinerAretes() {
   var couleur;
   for (var n = 0; n < sommets.length; n = n + 2) {
-    if (Math.floor(n / (8 * nbLignes)) % 3 == 0) couleur = "rgb(0,50,200)";
-    else if (Math.floor(n / (8 * nbLignes)) % 3 == 1) couleur = "rgb(50,150,0)";
-    else if (Math.floor(n / (8 * nbLignes)) % 3 == 2) couleur = "rgb(200,0,50)";
-    else couleur = "rgb(0,0,0)";
-    dessinerAreteEntre(n, n + 1, couleur);
+    // if (Math.floor(n / (8 * nbLignes)) % 3 == 0) couleur = "rgb(0,50,200)";
+    // else if (Math.floor(n / (8 * nbLignes)) % 3 == 1) couleur = "rgb(50,150,0)";
+    // else if (Math.floor(n / (8 * nbLignes)) % 3 == 2) couleur = "rgb(200,0,50)";
+    // else couleur = "rgb(0,0,0)";
+
+    dessinerAreteEntre(n, n + 1, couleurs[n]);
   }
 }
 
