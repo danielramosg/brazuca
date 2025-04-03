@@ -15,9 +15,31 @@ const canvas3 = document.getElementById("canvas3");
 const ctx3 = canvas3.getContext("2d");
 
 // symmetries, starting with an initial rotation
-const G = cubeGroup.map((g) =>
-  produitMatriciel(g, matriceRotation([1, 0, 0], -(Math.PI / 4) + 0.55))
-);
+let tilt;
+let G;
+// G = cubeGroup.map((g) =>
+//   produitMatriciel(g, matriceRotation([1, 0, 0], -(Math.PI / 4) + 0.55))
+// );
+
+const updateRotationsGroup = () => {
+  G = cubeGroup.map((g) =>
+    produitMatriciel(g, matriceRotation([1, 0, 0], -tilt * (Math.PI / 180)))
+  );
+};
+
+const getTiltAngle = () => {
+  tilt = Number(document.getElementById("angle").value);
+};
+
+const updatedTiltAngle = () => {
+  getTiltAngle();
+  console.log(tilt);
+  updateRotationsGroup();
+  updateTileShape();
+  mettreAJour();
+};
+
+document.getElementById("angle").addEventListener("change", updatedTiltAngle);
 
 var R = 1.6; //rayon
 var nbLignes = 80; //nombre de lignes à dessiner
@@ -53,9 +75,7 @@ const updateTileShape = () => {
   drawFlatTile(ctx2, 60, 20, 50);
   draw4FoldFlatTile(ctx3, 40, 120, 120);
 };
-
-updateTileShape();
-window.updateTileShape = updateTileShape;
+window.updateTileShape = updateTileShape; //Bezier Editor calls it from window object
 
 //- - - - - - - - - - - - - - - - - -
 //- - - - calculs et affichage
@@ -91,13 +111,7 @@ function dessinerAreteEntre(p, q, couleur) {
 }
 
 function dessinerAretes() {
-  var couleur;
   for (var n = 0; n < sommets.length; n = n + 2) {
-    // if (Math.floor(n / (8 * nbLignes)) % 3 == 0) couleur = "rgb(0,50,200)";
-    // else if (Math.floor(n / (8 * nbLignes)) % 3 == 1) couleur = "rgb(50,150,0)";
-    // else if (Math.floor(n / (8 * nbLignes)) % 3 == 2) couleur = "rgb(200,0,50)";
-    // else couleur = "rgb(0,0,0)";
-
     dessinerAreteEntre(n, n + 1, couleurs[n]);
   }
 }
@@ -134,4 +148,7 @@ function mettreAJour() {
   requestAnimationFrame(mettreAJour);
 }
 
+getTiltAngle();
+updateRotationsGroup();
+updateTileShape();
 mettreAJour();
