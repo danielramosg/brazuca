@@ -85,7 +85,7 @@ class BezierEditor {
     this.bgImage = document.createElement("img");
     this.bgImage.width = cnv.height;
     this.bgImage.height = cnv.height;
-    this.bgImage.src = "../img/brazuca_tile.png";
+    this.bgImage.src = "img/brazuca_tile.png";
     document.body.appendChild(this.bgImage);
 
     window.onload = () => this.update();
