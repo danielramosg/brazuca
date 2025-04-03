@@ -10,15 +10,18 @@
   text-align: center;
   display: inline-block;
 }
+
 #tileDetails {
-  position: absolute;
-  display: inline-flex;
+  /* position: absolute; */
+  width: 60%;
+  margin: auto;
+  display: flex;
   align-items: center;
-  flex-direction: column;
+  /* flex-direction: column; */
 }
 
 #profileMaker {
-  display: flex;
+  display: inline-block;
   justify-content: center;
 }
 #canvasMaker {
